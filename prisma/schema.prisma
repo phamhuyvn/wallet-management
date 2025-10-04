@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  OWNER
+  STAFF
+}
+
+enum AccountType {
+  CASH
+  BANK_TRANSFER
+}
+
+enum TxType {
+  DEPOSIT
+  TRANSFER
+  WITHDRAW
+  ORDER_PAYMENT
+}
+
+model Branch {
+  id           String        @id @default(uuid()) @db.Uuid
+  name         String        @unique
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  users        User[]
+  accounts     Account[]
+  transactions Transaction[]
+
+  @@map("branches")
+}
+
+model User {
+  id           String       @id @default(uuid()) @db.Uuid
+  email        String       @unique
+  passwordHash String       @map("password_hash")
+  fullName     String?      @map("full_name")
+  role         Role         @default(STAFF)
+  branchId     String?      @map("branch_id") @db.Uuid
+  branch       Branch?      @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  accounts     Account[]    @relation("AccountCreatedBy")
+  transactions Transaction[]
+
+  @@map("users")
+}
+
+model Account {
+  id          String        @id @default(uuid()) @db.Uuid
+  branchId    String        @map("branch_id") @db.Uuid
+  branch      Branch        @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  name        String
+  type        AccountType
+  isActive    Boolean       @default(true) @map("is_active")
+  createdById String        @map("created_by") @db.Uuid
+  createdBy   User          @relation("AccountCreatedBy", fields: [createdById], references: [id])
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  transactions Transaction[]
+
+  @@unique([branchId, name])
+  @@map("accounts")
+}
+
+model Transaction {
+  id        String     @id @default(uuid()) @db.Uuid
+  accountId String     @map("account_id") @db.Uuid
+  account   Account    @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  branchId  String     @map("branch_id") @db.Uuid
+  branch    Branch     @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  userId    String     @map("user_id") @db.Uuid
+  user      User       @relation(fields: [userId], references: [id])
+  type      TxType
+  amount    BigInt     @db.BigInt
+  note      String?
+  meta      Json       @default(dbgenerated("'{}'::jsonb"))
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  linksFrom TxLink[]   @relation("TxLinksFrom")
+  linksTo   TxLink[]   @relation("TxLinksTo")
+
+  @@index([branchId, createdAt], map: "transactions_branch_created_at_idx")
+  @@index([accountId, createdAt], map: "transactions_account_created_at_idx")
+  @@index([userId, createdAt], map: "transactions_user_created_at_idx")
+  @@map("transactions")
+}
+
+model TxLink {
+  id        String      @id @default(uuid()) @db.Uuid
+  txFromId  String      @map("tx_from") @db.Uuid
+  txFrom    Transaction @relation("TxLinksFrom", fields: [txFromId], references: [id], onDelete: Cascade)
+  txToId    String      @map("tx_to") @db.Uuid
+  txTo      Transaction @relation("TxLinksTo", fields: [txToId], references: [id], onDelete: Cascade)
+  createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([txFromId, txToId])
+  @@map("tx_links")
+}
