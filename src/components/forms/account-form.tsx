@@ -13,6 +13,8 @@ const ACCOUNT_TYPES = [
   { value: 'BANK_TRANSFER', label: 'Bank Transfer' },
 ] as const;
 
+type AccountType = typeof ACCOUNT_TYPES[number]['value'];
+
 type BranchOption = {
   id: string;
   name: string;
@@ -20,7 +22,11 @@ type BranchOption = {
 
 export function AccountForm({ branches, onSuccess }: { branches: BranchOption[]; onSuccess?: () => void }) {
   const router = useRouter();
-  const [formState, setFormState] = useState({
+  const [formState, setFormState] = useState<{
+    branchId: string;
+    name: string;
+    type: AccountType;
+  }>({
     branchId: branches[0]?.id ?? '',
     name: '',
     type: ACCOUNT_TYPES[0]?.value ?? 'CASH',
@@ -89,7 +95,7 @@ export function AccountForm({ branches, onSuccess }: { branches: BranchOption[];
         <Select
           id="account-type"
           value={formState.type}
-          onChange={(event) => setFormState((prev) => ({ ...prev, type: event.target.value }))}
+          onChange={(event) => setFormState((prev) => ({ ...prev, type: event.target.value as AccountType }))}
           required
         >
           {ACCOUNT_TYPES.map((option) => (
