@@ -17,8 +17,8 @@ export function TRow({ children }: { children: ReactNode }) {
   return <tr className="hover:bg-slate-50">{children}</tr>;
 }
 
-export function TCell({ children, className }: { children: ReactNode; className?: string }) {
-  return <td className={clsx('px-4 py-3 align-middle', className)}>{children}</td>;
+export function TCell({ children, className, colSpan }: { children: ReactNode; className?: string; colSpan?: number }) {
+  return <td className={clsx('px-4 py-3 align-middle', className)} colSpan={colSpan}>{children}</td>;
 }
 
 export function THeadCell({ children, className }: { children: ReactNode; className?: string }) {
