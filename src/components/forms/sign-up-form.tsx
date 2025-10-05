@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState, useTransition } from 'react';
@@ -9,8 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 
 const ROLE_OPTIONS = [
-  { value: 'STAFF', label: 'Staff' },
-  { value: 'OWNER', label: 'Owner' },
+  { value: 'STAFF', label: 'Nhân viên' },
+  { value: 'OWNER', label: 'Chủ sở hữu' },
 ] as const;
 
 type BranchOption = {
@@ -58,7 +58,7 @@ export function SignUpForm({
       });
       const body = await response.json();
       if (!response.ok) {
-        setError(body.error?.message ?? 'Registration failed');
+        setError(body.error?.message ?? 'Đăng ký không thành công.');
         return;
       }
       router.push('/sign-in');
@@ -68,41 +68,43 @@ export function SignUpForm({
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
       <div className="space-y-2">
-        <Label htmlFor="full-name">Full name</Label>
+        <Label htmlFor="full-name">Họ và tên</Label>
         <Input
           id="full-name"
-          placeholder="Nguyen Van A"
+          placeholder="Nguyễn Văn A"
           required
           value={formState.fullName}
           onChange={(event) => setFormState((prev) => ({ ...prev, fullName: event.target.value }))}
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="signup-email">Email</Label>
+        <Label htmlFor="signup-email">Email công việc</Label>
         <Input
           id="signup-email"
           type="email"
+          placeholder="ban@congty.vn"
           required
           value={formState.email}
           onChange={(event) => setFormState((prev) => ({ ...prev, email: event.target.value }))}
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="signup-password">Password</Label>
+        <Label htmlFor="signup-password">Mật khẩu</Label>
         <Input
           id="signup-password"
           type="password"
           minLength={8}
+          placeholder="Tối thiểu 8 ký tự"
           required
           value={formState.password}
           onChange={(event) => setFormState((prev) => ({ ...prev, password: event.target.value }))}
         />
-        <p className="text-xs text-slate-500">Use at least 8 characters with letters and numbers.</p>
+        <p className="text-xs text-slate-500">Tối thiểu 8 ký tự, nên kết hợp chữ và số.</p>
       </div>
       {!isFirstUser ? (
         <>
           <div className="space-y-2">
-            <Label htmlFor="signup-role">Role</Label>
+            <Label htmlFor="signup-role">Vai trò</Label>
             <Select
               id="signup-role"
               value={formState.role}
@@ -117,7 +119,7 @@ export function SignUpForm({
           </div>
           {formState.role === 'STAFF' ? (
             <div className="space-y-2">
-              <Label htmlFor="signup-branch">Branch</Label>
+              <Label htmlFor="signup-branch">Chi nhánh làm việc</Label>
               <Select
                 id="signup-branch"
                 value={formState.branchId}
@@ -135,7 +137,7 @@ export function SignUpForm({
       ) : null}
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       <Button type="submit" className="w-full" disabled={isPending}>
-        {isPending ? 'Creating account?' : 'Create account'}
+        {isPending ? 'Đang tạo tài khoản...' : 'Tạo tài khoản'}
       </Button>
     </form>
   );

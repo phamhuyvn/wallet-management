@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useMemo, useState } from 'react';
@@ -9,11 +9,11 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 
 const TYPE_OPTIONS = [
-  { value: '', label: 'All types' },
-  { value: 'DEPOSIT', label: 'Deposit' },
-  { value: 'TRANSFER', label: 'Transfer' },
-  { value: 'WITHDRAW', label: 'Withdraw' },
-  { value: 'ORDER_PAYMENT', label: 'Order payment' },
+  { value: '', label: 'Tất cả loại' },
+  { value: 'DEPOSIT', label: 'Nạp tiền' },
+  { value: 'TRANSFER', label: 'Chuyển khoản' },
+  { value: 'WITHDRAW', label: 'Xuất quỹ' },
+  { value: 'ORDER_PAYMENT', label: 'Thanh toán đơn hàng' },
 ];
 
 export function TransactionsFilters({
@@ -38,7 +38,7 @@ export function TransactionsFilters({
 
   return (
     <form
-      className="flex flex-wrap items-end gap-3 rounded-xl border border-slate-200 bg-white p-4"
+      className="flex flex-wrap items-end gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
       onSubmit={(event) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
@@ -57,9 +57,9 @@ export function TransactionsFilters({
     >
       {role === 'OWNER' ? (
         <div className="flex min-w-[160px] flex-col gap-2">
-          <Label htmlFor="branchId">Branch</Label>
+          <Label htmlFor="branchId">Chi nhánh</Label>
           <Select id="branchId" name="branchId" value={branchId} onChange={(event) => setBranchId(event.target.value)}>
-            <option value="">All branches</option>
+            <option value="">Tất cả chi nhánh</option>
             {branches.map((branch) => (
               <option key={branch.id} value={branch.id}>
                 {branch.name}
@@ -69,9 +69,9 @@ export function TransactionsFilters({
         </div>
       ) : null}
       <div className="flex min-w-[160px] flex-col gap-2">
-        <Label htmlFor="accountId">Account</Label>
+        <Label htmlFor="accountId">Tài khoản</Label>
         <Select id="accountId" name="accountId" defaultValue={params?.get('accountId') ?? ''}>
-          <option value="">All accounts</option>
+          <option value="">Tất cả tài khoản</option>
           {filteredAccounts.map((account) => (
             <option key={account.id} value={account.id}>
               {account.name}
@@ -79,8 +79,8 @@ export function TransactionsFilters({
           ))}
         </Select>
       </div>
-      <div className="flex min-w-[140px] flex-col gap-2">
-        <Label htmlFor="type">Type</Label>
+      <div className="flex min-w-[160px] flex-col gap-2">
+        <Label htmlFor="type">Loại giao dịch</Label>
         <Select id="type" name="type" defaultValue={params?.get('type') ?? ''}>
           {TYPE_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
@@ -89,24 +89,27 @@ export function TransactionsFilters({
           ))}
         </Select>
       </div>
-      <div className="flex min-w-[140px] flex-col gap-2">
-        <Label htmlFor="from">From</Label>
+      <div className="flex min-w-[150px] flex-col gap-2">
+        <Label htmlFor="from">Từ ngày</Label>
         <Input id="from" name="from" type="date" defaultValue={params?.get('from') ?? ''} />
       </div>
-      <div className="flex min-w-[140px] flex-col gap-2">
-        <Label htmlFor="to">To</Label>
+      <div className="flex min-w-[150px] flex-col gap-2">
+        <Label htmlFor="to">Đến ngày</Label>
         <Input id="to" name="to" type="date" defaultValue={params?.get('to') ?? ''} />
       </div>
-      <Button type="submit">Apply</Button>
+      <Button type="submit" size="sm">
+        Áp dụng
+      </Button>
       <Button
         type="button"
         variant="ghost"
+        size="sm"
         onClick={() => {
           setBranchId(initialBranch);
           router.replace('/transactions');
         }}
       >
-        Reset
+        Xóa bộ lọc
       </Button>
     </form>
   );

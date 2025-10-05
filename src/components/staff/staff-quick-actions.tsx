@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from 'react';
 
@@ -10,8 +10,10 @@ export function StaffQuickActions({ accounts }: { accounts: Array<{ id: string; 
   const [open, setOpen] = useState(false);
   return (
     <>
-      <Button onClick={() => setOpen(true)}>Deposit</Button>
-      <Modal open={open} onClose={() => setOpen(false)} title="Deposit funds">
+      <Button onClick={() => setOpen(true)} size="sm">
+        Nạp tiền nhanh
+      </Button>
+      <Modal open={open} onClose={() => setOpen(false)} title="Nạp tiền vào tài khoản">
         <DepositForm accounts={accounts} onSuccess={() => setOpen(false)} />
       </Modal>
     </>

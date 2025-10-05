@@ -2,13 +2,12 @@
 
 import { signOut } from 'next-auth/react';
 
+import { Button } from '@/components/ui/button';
+
 export function SignOutButton() {
   return (
-    <button
-      onClick={() => signOut({ callbackUrl: '/sign-in' })}
-      className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:border-slate-400 hover:text-slate-900"
-    >
-      Sign out
-    </button>
+    <Button type="button" variant="ghost" size="sm" onClick={() => signOut({ callbackUrl: '/sign-in' })}>
+      Đăng xuất
+    </Button>
   );
 }

@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 import { Geist, Geist_Mono } from 'next/font/google';
 
@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Wallet Manager',
-  description: 'Multi-branch cash & wallet management',
+  title: 'Quản lý Ví & Tiền mặt',
+  description: 'Theo dõi dòng tiền đa chi nhánh theo thời gian thực.',
 };
 
 export default async function RootLayout({
@@ -29,8 +29,8 @@ export default async function RootLayout({
 }) {
   const session = await getServerSession(authOptions);
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <body className="min-h-screen bg-slate-50 text-slate-900">
+    <html lang="vi" className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body className="min-h-screen bg-slate-100 text-slate-900 antialiased">
         <AuthProvider session={session}>{children}</AuthProvider>
       </body>
     </html>

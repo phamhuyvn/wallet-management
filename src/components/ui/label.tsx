@@ -4,5 +4,5 @@ import { LabelHTMLAttributes } from 'react';
 type LabelProps = LabelHTMLAttributes<HTMLLabelElement>;
 
 export function Label({ className, ...props }: LabelProps) {
-  return <label className={clsx('text-sm font-medium text-slate-700', className)} {...props} />;
+  return <label className={clsx('block text-sm font-semibold text-slate-700', className)} {...props} />;
 }

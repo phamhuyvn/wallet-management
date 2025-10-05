@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -8,10 +8,10 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 
 const GROUP_OPTIONS = [
-  { value: 'day', label: 'Day' },
-  { value: 'month', label: 'Month' },
-  { value: 'year', label: 'Year' },
-  { value: 'custom', label: 'Custom (no grouping)' },
+  { value: 'day', label: 'Ngày' },
+  { value: 'month', label: 'Tháng' },
+  { value: 'year', label: 'Năm' },
+  { value: 'custom', label: 'Tùy chỉnh (không gộp)' },
 ];
 
 export function MetricsFilters({
@@ -28,7 +28,7 @@ export function MetricsFilters({
 
   return (
     <form
-      className="flex flex-wrap items-end gap-3 rounded-xl border border-slate-200 bg-white p-4"
+      className="flex flex-wrap items-end gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
       onSubmit={(event) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
@@ -51,15 +51,15 @@ export function MetricsFilters({
       }}
     >
       <div className="flex min-w-[150px] flex-1 flex-col gap-2">
-        <Label htmlFor="from">From</Label>
+        <Label htmlFor="from">Từ ngày</Label>
         <Input id="from" name="from" type="date" defaultValue={initialFrom} />
       </div>
       <div className="flex min-w-[150px] flex-1 flex-col gap-2">
-        <Label htmlFor="to">To</Label>
+        <Label htmlFor="to">Đến ngày</Label>
         <Input id="to" name="to" type="date" defaultValue={initialTo} />
       </div>
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="groupBy">Group by</Label>
+      <div className="flex min-w-[170px] flex-col gap-2">
+        <Label htmlFor="groupBy">Gộp theo</Label>
         <Select id="groupBy" name="groupBy" defaultValue={initialGroupBy}>
           {GROUP_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
@@ -68,10 +68,13 @@ export function MetricsFilters({
           ))}
         </Select>
       </div>
-      <Button type="submit">Apply</Button>
+      <Button type="submit" size="sm">
+        Áp dụng
+      </Button>
       <Button
         type="button"
         variant="ghost"
+        size="sm"
         onClick={() => {
           const query = new URLSearchParams(params?.toString() ?? '');
           query.delete('from');
@@ -80,7 +83,7 @@ export function MetricsFilters({
           router.replace(`/owner${query.toString() ? `?${query.toString()}` : ''}`);
         }}
       >
-        Reset
+        Xóa bộ lọc
       </Button>
     </form>
   );

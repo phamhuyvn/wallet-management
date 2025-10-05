@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from 'react';
 
@@ -28,40 +28,40 @@ export function OwnerQuickActions({
   }));
 
   return (
-    <div className="flex flex-wrap gap-3">
-      <Button variant="primary" onClick={() => setOpenModal('transfer')} disabled={accounts.length < 2}>
-        Transfer
+    <div className="flex flex-wrap gap-2 sm:justify-end">
+      <Button variant="primary" size="sm" onClick={() => setOpenModal('transfer')} disabled={accounts.length < 2}>
+        Chuyển khoản nội bộ
       </Button>
-      <Button variant="secondary" onClick={() => setOpenModal('withdraw')} disabled={accounts.length === 0}>
-        Withdraw
+      <Button variant="secondary" size="sm" onClick={() => setOpenModal('withdraw')} disabled={accounts.length === 0}>
+        Xuất quỹ
       </Button>
-      <Button variant="secondary" onClick={() => setOpenModal('order')} disabled={accounts.length === 0}>
-        Pay Order
+      <Button variant="secondary" size="sm" onClick={() => setOpenModal('order')} disabled={accounts.length === 0}>
+        Thanh toán đơn hàng
       </Button>
-      <Button variant="ghost" onClick={() => setOpenModal('deposit')} disabled={accounts.length === 0}>
-        Deposit
+      <Button variant="ghost" size="sm" onClick={() => setOpenModal('deposit')} disabled={accounts.length === 0}>
+        Nạp tiền
       </Button>
-      <Button variant="ghost" onClick={() => setOpenModal('account')} disabled={branches.length === 0}>
-        New Account
+      <Button variant="ghost" size="sm" onClick={() => setOpenModal('account')} disabled={branches.length === 0}>
+        Tạo tài khoản mới
       </Button>
 
-      <Modal open={openModal === 'transfer'} onClose={close} title="Transfer between accounts">
+      <Modal open={openModal === 'transfer'} onClose={close} title="Chuyển khoản giữa các ví">
         <TransferForm accounts={accounts} onSuccess={close} />
       </Modal>
 
-      <Modal open={openModal === 'withdraw'} onClose={close} title="Withdraw cash">
+      <Modal open={openModal === 'withdraw'} onClose={close} title="Xuất quỹ tiền mặt">
         <WithdrawForm accounts={accountOptions} onSuccess={close} />
       </Modal>
 
-      <Modal open={openModal === 'order'} onClose={close} title="Pay for order">
+      <Modal open={openModal === 'order'} onClose={close} title="Thanh toán đơn hàng">
         <OrderPaymentForm accounts={accountOptions} onSuccess={close} />
       </Modal>
 
-      <Modal open={openModal === 'deposit'} onClose={close} title="Deposit into account">
+      <Modal open={openModal === 'deposit'} onClose={close} title="Nạp tiền vào tài khoản">
         <DepositForm accounts={accountOptions} onSuccess={close} />
       </Modal>
 
-      <Modal open={openModal === 'account'} onClose={close} title="Create new account">
+      <Modal open={openModal === 'account'} onClose={close} title="Tạo tài khoản quản lý mới">
         <AccountForm branches={branches} onSuccess={close} />
       </Modal>
     </div>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
@@ -9,11 +9,11 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 
 const ACCOUNT_TYPES = [
-  { value: 'CASH', label: 'Cash' },
-  { value: 'BANK_TRANSFER', label: 'Bank Transfer' },
+  { value: 'CASH', label: 'Tiền mặt' },
+  { value: 'BANK_TRANSFER', label: 'Chuyển khoản ngân hàng' },
 ] as const;
 
-type AccountType = typeof ACCOUNT_TYPES[number]['value'];
+type AccountType = (typeof ACCOUNT_TYPES)[number]['value'];
 
 type BranchOption = {
   id: string;
@@ -38,7 +38,7 @@ export function AccountForm({ branches, onSuccess }: { branches: BranchOption[];
     event.preventDefault();
     setError(null);
     if (!formState.branchId || !formState.name) {
-      setError('Branch and name are required');
+      setError('Vui lòng chọn chi nhánh và nhập tên tài khoản.');
       return;
     }
     const payload = {
@@ -54,7 +54,7 @@ export function AccountForm({ branches, onSuccess }: { branches: BranchOption[];
       });
       const body = await response.json();
       if (!response.ok) {
-        setError(body.error?.message ?? 'Failed to create account');
+        setError(body.error?.message ?? 'Không thể tạo tài khoản.');
         return;
       }
       setFormState({ branchId: branches[0]?.id ?? '', name: '', type: ACCOUNT_TYPES[0]?.value ?? 'CASH' });
@@ -66,7 +66,7 @@ export function AccountForm({ branches, onSuccess }: { branches: BranchOption[];
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
       <div className="space-y-2">
-        <Label htmlFor="account-branch">Branch</Label>
+        <Label htmlFor="account-branch">Chi nhánh</Label>
         <Select
           id="account-branch"
           value={formState.branchId}
@@ -81,17 +81,17 @@ export function AccountForm({ branches, onSuccess }: { branches: BranchOption[];
         </Select>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="account-name">Account name</Label>
+        <Label htmlFor="account-name">Tên tài khoản</Label>
         <Input
           id="account-name"
-          placeholder="Cash register"
+          placeholder="Ví tiền mặt quầy"
           required
           value={formState.name}
           onChange={(event) => setFormState((prev) => ({ ...prev, name: event.target.value }))}
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="account-type">Type</Label>
+        <Label htmlFor="account-type">Loại tài khoản</Label>
         <Select
           id="account-type"
           value={formState.type}
@@ -107,8 +107,8 @@ export function AccountForm({ branches, onSuccess }: { branches: BranchOption[];
       </div>
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       <div className="flex justify-end">
-        <Button type="submit" disabled={isPending}>
-          {isPending ? 'Saving?' : 'Create account'}
+        <Button type="submit" disabled={isPending} size="sm">
+          {isPending ? 'Đang lưu...' : 'Tạo tài khoản'}
         </Button>
       </div>
     </form>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useSearchParams } from 'next/navigation';
 import { FormEvent, useState, useTransition } from 'react';
@@ -26,7 +26,7 @@ export function SignInForm() {
         redirect: false,
       });
       if (response?.error) {
-        setError('Invalid email or password');
+        setError('Email hoặc mật khẩu chưa chính xác.');
         return;
       }
       window.location.href = response?.url ?? callbackUrl;
@@ -41,17 +41,19 @@ export function SignInForm() {
           id="email"
           type="email"
           autoComplete="email"
+          placeholder="ban@congty.vn"
           required
           value={formState.email}
           onChange={(event) => setFormState((prev) => ({ ...prev, email: event.target.value }))}
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">Mật khẩu</Label>
         <Input
           id="password"
           type="password"
           autoComplete="current-password"
+          placeholder="Nhập mật khẩu"
           required
           value={formState.password}
           onChange={(event) => setFormState((prev) => ({ ...prev, password: event.target.value }))}
@@ -59,7 +61,7 @@ export function SignInForm() {
       </div>
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       <Button type="submit" className="w-full" disabled={isPending}>
-        {isPending ? 'Signing in?' : 'Sign in'}
+        {isPending ? 'Đang đăng nhập...' : 'Đăng nhập'}
       </Button>
     </form>
   );

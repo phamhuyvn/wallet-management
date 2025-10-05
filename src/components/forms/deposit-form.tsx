@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
@@ -24,7 +24,7 @@ export function DepositForm({ accounts, onSuccess }: { accounts: AccountOption[]
     event.preventDefault();
     setError(null);
     if (!formState.accountId || !formState.amount) {
-      setError('Account and amount are required');
+      setError('Vui lòng chọn tài khoản và nhập số tiền.');
       return;
     }
     const payload = {
@@ -40,7 +40,7 @@ export function DepositForm({ accounts, onSuccess }: { accounts: AccountOption[]
       });
       const body = await response.json();
       if (!response.ok) {
-        setError(body.error?.message ?? 'Deposit failed');
+        setError(body.error?.message ?? 'Nạp tiền thất bại.');
         return;
       }
       setFormState({ accountId: accounts[0]?.id ?? '', amount: '', note: '' });
@@ -52,10 +52,10 @@ export function DepositForm({ accounts, onSuccess }: { accounts: AccountOption[]
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
       <div className="space-y-2">
-        <Label htmlFor="deposit-account">Account</Label>
+        <Label htmlFor="deposit-account">Tài khoản nhận</Label>
         <select
           id="deposit-account"
-          className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200"
+          className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
           value={formState.accountId}
           onChange={(event) => setFormState((prev) => ({ ...prev, accountId: event.target.value }))}
           required
@@ -63,38 +63,39 @@ export function DepositForm({ accounts, onSuccess }: { accounts: AccountOption[]
           {accounts.map((account) => (
             <option key={account.id} value={account.id}>
               {account.name}
-              {account.branchName ? ` ? ${account.branchName}` : ''}
+              {account.branchName ? ` - ${account.branchName}` : ''}
             </option>
           ))}
         </select>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="deposit-amount">Amount (VND)</Label>
+        <Label htmlFor="deposit-amount">Số tiền (VND)</Label>
         <Input
           id="deposit-amount"
           inputMode="numeric"
           pattern="^[0-9]+$"
           placeholder="100000"
+          title="Nhập số tiền bằng chữ số."
           required
           value={formState.amount}
           onChange={(event) => setFormState((prev) => ({ ...prev, amount: event.target.value }))}
         />
-        <p className="text-xs text-slate-500">Enter the amount in ??ng (no decimals).</p>
+        <p className="text-xs text-slate-500">Nhập số nguyên dương, không bao gồm ký tự đặc biệt.</p>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="deposit-note">Note</Label>
+        <Label htmlFor="deposit-note">Ghi chú</Label>
         <Textarea
           id="deposit-note"
           rows={3}
           value={formState.note}
           onChange={(event) => setFormState((prev) => ({ ...prev, note: event.target.value }))}
-          placeholder="Optional note"
+          placeholder="Ví dụ: Nạp quỹ cuối ngày"
         />
       </div>
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       <div className="flex justify-end">
-        <Button type="submit" disabled={isPending}>
-          {isPending ? 'Processing?' : 'Deposit'}
+        <Button type="submit" disabled={isPending} size="sm">
+          {isPending ? 'Đang xử lý...' : 'Xác nhận nạp tiền'}
         </Button>
       </div>
     </form>
