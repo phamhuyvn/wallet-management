@@ -28,12 +28,13 @@ export default async function ProtectedLayout({ children }: { children: React.Re
   const navItems =
     session.user.role === Role.OWNER
       ? [
-          { href: '/owner', label: 'Tổng quan chủ sở hữu' },
+          { href: '/owner', label: 'Tổng quan' },
+          { href: '/branches', label: 'Chi nhánh' },
           { href: '/accounts', label: 'Tài khoản' },
           { href: '/transactions', label: 'Giao dịch' },
         ]
       : [
-          { href: '/staff', label: 'Bảng điều khiển nhân viên' },
+          { href: '/staff', label: 'Bảng điều khiển' },
           { href: '/transactions', label: 'Giao dịch' },
         ];
 

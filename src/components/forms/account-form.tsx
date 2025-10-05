@@ -20,14 +20,27 @@ type BranchOption = {
   name: string;
 };
 
-export function AccountForm({ branches, onSuccess }: { branches: BranchOption[]; onSuccess?: () => void }) {
+type AccountFormProps = {
+  branches: BranchOption[];
+  onSuccess?: () => void;
+  defaultBranchId?: string;
+  disableBranchSelection?: boolean;
+};
+
+export function AccountForm({
+  branches,
+  onSuccess,
+  defaultBranchId,
+  disableBranchSelection = false,
+}: AccountFormProps) {
   const router = useRouter();
+  const initialBranchId = defaultBranchId ?? branches[0]?.id ?? '';
   const [formState, setFormState] = useState<{
     branchId: string;
     name: string;
     type: AccountType;
   }>({
-    branchId: branches[0]?.id ?? '',
+    branchId: initialBranchId,
     name: '',
     type: ACCOUNT_TYPES[0]?.value ?? 'CASH',
   });
@@ -57,7 +70,11 @@ export function AccountForm({ branches, onSuccess }: { branches: BranchOption[];
         setError(body.error?.message ?? 'Không thể tạo tài khoản.');
         return;
       }
-      setFormState({ branchId: branches[0]?.id ?? '', name: '', type: ACCOUNT_TYPES[0]?.value ?? 'CASH' });
+      setFormState({
+        branchId: defaultBranchId ?? branches[0]?.id ?? '',
+        name: '',
+        type: ACCOUNT_TYPES[0]?.value ?? 'CASH',
+      });
       router.refresh();
       onSuccess?.();
     });
@@ -72,6 +89,7 @@ export function AccountForm({ branches, onSuccess }: { branches: BranchOption[];
           value={formState.branchId}
           onChange={(event) => setFormState((prev) => ({ ...prev, branchId: event.target.value }))}
           required
+          disabled={disableBranchSelection}
         >
           {branches.map((branch) => (
             <option key={branch.id} value={branch.id}>
@@ -79,6 +97,9 @@ export function AccountForm({ branches, onSuccess }: { branches: BranchOption[];
             </option>
           ))}
         </Select>
+        {disableBranchSelection ? (
+          <p className="text-xs text-slate-500">Tài khoản mới sẽ gắn với chi nhánh này.</p>
+        ) : null}
       </div>
       <div className="space-y-2">
         <Label htmlFor="account-name">Tên tài khoản</Label>

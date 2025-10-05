@@ -37,6 +37,12 @@ export const registerSchema = z.object({
   branchId: uuid.optional(),
 });
 
+export const branchCreateSchema = z.object({
+  name: z.string().trim().min(2).max(120),
+});
+
+export const branchUpdateSchema = branchCreateSchema;
+
 export const accountCreateSchema = z.object({
   branchId: uuid,
   name: z.string().min(2).max(120),

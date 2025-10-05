@@ -1,6 +1,10 @@
+﻿import { Prisma } from '@prisma/client';
+
 import { errorResponse, jsonResponse } from '@/lib/api';
-import { requireAuthenticatedUser } from '@/lib/auth';
+import { requireAuthenticatedUser, requireOwner } from '@/lib/auth';
 import prisma from '@/lib/db';
+import { AppError } from '@/lib/errors';
+import { branchCreateSchema } from '@/lib/schema';
 
 export async function GET() {
   try {
@@ -44,6 +48,42 @@ export async function GET() {
 
     return jsonResponse({ branches: result });
   } catch (error) {
+    return errorResponse(error);
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    await requireOwner();
+    const body = await request.json();
+    const data = branchCreateSchema.safeParse(body);
+    if (!data.success) {
+      return errorResponse(data.error);
+    }
+
+    const branch = await prisma.branch.create({
+      data: { name: data.data.name },
+      select: {
+        id: true,
+        name: true,
+        createdAt: true,
+      },
+    });
+
+    return jsonResponse(
+      {
+        branch: {
+          ...branch,
+          balance: 0n,
+          accounts: [],
+        },
+      },
+      { status: 201 },
+    );
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      return errorResponse(new AppError('Tên chi nhánh đã tồn tại', 409));
+    }
     return errorResponse(error);
   }
 }
