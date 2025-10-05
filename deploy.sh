@@ -56,13 +56,25 @@ if [ -d "prisma" ]; then
     cp -r prisma .next/standalone/
 fi
 
-# Copy package.json
+# Copy package files
 cp package.json .next/standalone/
+if [ -f "package-lock.json" ]; then
+    cp package-lock.json .next/standalone/
+fi
 
-# Copy node_modules (only production dependencies)
+# Install production dependencies in standalone
 echo "📦 Installing production dependencies in standalone..."
 cd .next/standalone
-npm ci --production --ignore-scripts
+
+# Use npm ci if package-lock.json exists, otherwise npm install
+if [ -f "package-lock.json" ]; then
+    echo "Using npm ci with package-lock.json..."
+    npm ci --omit=dev --ignore-scripts
+else
+    echo "Warning: package-lock.json not found, using npm install..."
+    npm install --omit=dev --ignore-scripts
+fi
+
 cd ../..
 
 # Copy environment file
