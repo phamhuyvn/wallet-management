@@ -1,4 +1,4 @@
-import { PrismaClient, Role, TxType } from '@prisma/client';
+import { Prisma, PrismaClient, Role, TxType } from '@prisma/client';
 import { Session } from 'next-auth';
 
 import prisma from '@/lib/db';
@@ -10,11 +10,13 @@ import {
   WithdrawInput,
 } from '@/lib/schema';
 
+type DbClient = PrismaClient | Prisma.TransactionClient;
+
 function getClient(client?: PrismaClient) {
   return client ?? prisma;
 }
 
-async function requireAccount(client: PrismaClient, accountId: string) {
+async function requireAccount(client: DbClient, accountId: string) {
   const account = await client.account.findUnique({
     where: { id: accountId },
     select: {
@@ -31,6 +33,14 @@ async function requireAccount(client: PrismaClient, accountId: string) {
     throw new AppError('Account is inactive', 400);
   }
   return account;
+}
+
+async function getAccountBalance(client: DbClient, accountId: string) {
+  const balance = await client.transaction.aggregate({
+    _sum: { amount: true },
+    where: { accountId },
+  });
+  return balance._sum.amount ?? 0n;
 }
 
 function assertStaffBranch(user: Session['user'], branchId: string) {
@@ -51,29 +61,29 @@ export async function createDeposit({
   client?: PrismaClient;
 }) {
   const prismaClient = getClient(client);
-  const account = await requireAccount(prismaClient, input.accountId);
-  assertStaffBranch(user, account.branchId);
 
-  const transaction = await prismaClient.transaction.create({
-    data: {
-      accountId: account.id,
-      branchId: account.branchId,
-      userId: user.id,
-      type: TxType.DEPOSIT,
-      amount: input.amount,
-      note: input.note,
-    },
+  return prismaClient.$transaction(async (tx) => {
+    const account = await requireAccount(tx, input.accountId);
+    assertStaffBranch(user, account.branchId);
+
+    const transaction = await tx.transaction.create({
+      data: {
+        accountId: account.id,
+        branchId: account.branchId,
+        userId: user.id,
+        type: TxType.DEPOSIT,
+        amount: input.amount,
+        note: input.note,
+      },
+    });
+
+    const balance = await getAccountBalance(tx, account.id);
+
+    return {
+      transaction,
+      balance,
+    };
   });
-
-  const balance = await prismaClient.transaction.aggregate({
-    _sum: { amount: true },
-    where: { accountId: account.id },
-  });
-
-  return {
-    transaction,
-    balance: balance._sum.amount ?? 0n,
-  };
 }
 
 export async function createWithdraw({
@@ -86,31 +96,33 @@ export async function createWithdraw({
   client?: PrismaClient;
 }) {
   const prismaClient = getClient(client);
-  const account = await requireAccount(prismaClient, input.accountId);
   if (user.role !== Role.OWNER) {
     throw new ForbiddenError('Only owners can withdraw');
   }
 
-  const transaction = await prismaClient.transaction.create({
-    data: {
-      accountId: account.id,
-      branchId: account.branchId,
-      userId: user.id,
-      type: TxType.WITHDRAW,
-      amount: -input.amount,
-      note: input.note,
-    },
-  });
+  return prismaClient.$transaction(async (tx) => {
+    const account = await requireAccount(tx, input.accountId);
+    const currentBalance = await getAccountBalance(tx, account.id);
+    if (currentBalance < input.amount) {
+      throw new AppError('Insufficient funds', 400);
+    }
 
-  const balance = await prismaClient.transaction.aggregate({
-    _sum: { amount: true },
-    where: { accountId: account.id },
-  });
+    const transaction = await tx.transaction.create({
+      data: {
+        accountId: account.id,
+        branchId: account.branchId,
+        userId: user.id,
+        type: TxType.WITHDRAW,
+        amount: -input.amount,
+        note: input.note,
+      },
+    });
 
-  return {
-    transaction,
-    balance: balance._sum.amount ?? 0n,
-  };
+    return {
+      transaction,
+      balance: currentBalance - input.amount,
+    };
+  });
 }
 
 export async function createOrderPayment({
@@ -123,34 +135,36 @@ export async function createOrderPayment({
   client?: PrismaClient;
 }) {
   const prismaClient = getClient(client);
-  const account = await requireAccount(prismaClient, input.accountId);
   if (user.role !== Role.OWNER) {
     throw new ForbiddenError('Only owners can record order payments');
   }
 
-  const transaction = await prismaClient.transaction.create({
-    data: {
-      accountId: account.id,
-      branchId: account.branchId,
-      userId: user.id,
-      type: TxType.ORDER_PAYMENT,
-      amount: -input.amount,
-      note: input.note,
-      meta: {
-        orderId: input.orderId,
+  return prismaClient.$transaction(async (tx) => {
+    const account = await requireAccount(tx, input.accountId);
+    const currentBalance = await getAccountBalance(tx, account.id);
+    if (currentBalance < input.amount) {
+      throw new AppError('Insufficient funds', 400);
+    }
+
+    const transaction = await tx.transaction.create({
+      data: {
+        accountId: account.id,
+        branchId: account.branchId,
+        userId: user.id,
+        type: TxType.ORDER_PAYMENT,
+        amount: -input.amount,
+        note: input.note,
+        meta: {
+          orderId: input.orderId,
+        },
       },
-    },
-  });
+    });
 
-  const balance = await prismaClient.transaction.aggregate({
-    _sum: { amount: true },
-    where: { accountId: account.id },
+    return {
+      transaction,
+      balance: currentBalance - input.amount,
+    };
   });
-
-  return {
-    transaction,
-    balance: balance._sum.amount ?? 0n,
-  };
 }
 
 export async function createTransfer({
@@ -193,6 +207,12 @@ export async function createTransfer({
   }
 
   const result = await prismaClient.$transaction(async (tx) => {
+    const fromBalance = await getAccountBalance(tx, fromAccount.id);
+    if (fromBalance < input.amount) {
+      throw new AppError('Insufficient funds in source account', 400);
+    }
+    const toBalance = await getAccountBalance(tx, toAccount.id);
+
     const debit = await tx.transaction.create({
       data: {
         accountId: fromAccount.id,
@@ -240,22 +260,22 @@ export async function createTransfer({
       },
     });
 
-    return { debit, credit };
+    return {
+      debit,
+      credit,
+      balances: {
+        from: fromBalance - input.amount,
+        to: toBalance + input.amount,
+      },
+    };
   });
-
-  const balances = await prismaClient.transaction.groupBy({
-    by: ['accountId'],
-    where: { accountId: { in: [input.fromAccountId, input.toAccountId] } },
-    _sum: { amount: true },
-  });
-  const balanceMap = new Map(balances.map((entry) => [entry.accountId, entry._sum.amount ?? 0n]));
 
   return {
     debit: result.debit,
     credit: result.credit,
     balances: {
-      [input.fromAccountId]: balanceMap.get(input.fromAccountId) ?? 0n,
-      [input.toAccountId]: balanceMap.get(input.toAccountId) ?? 0n,
+      [input.fromAccountId]: result.balances.from,
+      [input.toAccountId]: result.balances.to,
     },
   };
 }
