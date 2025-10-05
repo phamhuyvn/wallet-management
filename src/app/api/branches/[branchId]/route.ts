@@ -1,4 +1,4 @@
-﻿import { Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 
 import { errorResponse, jsonResponse } from '@/lib/api';
@@ -9,10 +9,11 @@ import { branchUpdateSchema } from '@/lib/schema';
 
 const branchIdSchema = z.string().uuid();
 
-export async function PATCH(request: Request, context: { params: { branchId: string } }) {
+export async function PATCH(request: Request, context: { params: Promise<{ branchId: string }> }) {
   try {
     await requireOwner();
-    const branchIdResult = branchIdSchema.safeParse(context.params.branchId);
+    const params = await context.params;
+    const branchIdResult = branchIdSchema.safeParse(params.branchId);
     if (!branchIdResult.success) {
       return errorResponse(new AppError('Mã chi nhánh không hợp lệ', 400));
     }
