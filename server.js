@@ -1,21 +1,35 @@
-// server.js - Standalone server for Next.js application
-const { createServer } = require('http');
-const { parse } = require('url');
-const next = require('next');
-const path = require('path');
+// server.js
+// Wrapper to start the Next.js standalone server
+// This file is placed in .next/standalone/ after build
 
-const dev = process.env.NODE_ENV !== 'production';
-const hostname = process.env.HOSTNAME || 'localhost';
+const { createServer } = require('http');
+const path = require('path');
+const { parse } = require('url');
+
+const hostname = process.env.HOSTNAME || '0.0.0.0';
 const port = parseInt(process.env.PORT || '3000', 10);
 
-// For standalone build
-const app = next({
-  dev: false,
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT received, shutting down gracefully');  
+  process.exit(0);
+});
+
+// The standalone build generates a server.js in .next/standalone
+// We need to start that server
+const NextServer = require('next/dist/server/next-server').default;
+const http = require('http');
+
+const app = new NextServer({
+  hostname,
+  port,
   dir: __dirname,
-  conf: {
-    distDir: '.next',
-    output: 'standalone',
-  },
+  dev: false,
+  conf: require('./.next/required-server-files.json').config,
 });
 
 const handle = app.getRequestHandler();
@@ -28,14 +42,11 @@ app.prepare().then(() => {
     } catch (err) {
       console.error('Error occurred handling', req.url, err);
       res.statusCode = 500;
-      res.end('internal server error');
+      res.end('Internal server error');
     }
-  })
-    .once('error', (err) => {
-      console.error(err);
-      process.exit(1);
-    })
-    .listen(port, () => {
-      console.log(`> Ready on http://${hostname}:${port}`);
-    });
+  }).listen(port, hostname, (err) => {
+    if (err) throw err;
+    console.log(`> Ready on http://${hostname}:${port}`);
+    console.log(`> Environment: ${process.env.NODE_ENV || 'production'}`);
+  });
 });

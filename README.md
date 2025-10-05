@@ -13,18 +13,20 @@ Production-ready multi-branch cash & wallet management platform built with Next.
 
 ## Getting started
 
-### 1. Install dependencies
+### Development Setup
+
+#### 1. Install dependencies
 
 ```bash
 npm install
 ```
 
-### 2. Configure environment
+#### 2. Configure environment
 
-Create a `.env.local` file using the template:
+Create a `.env` file using the template:
 
 ```bash
-cp .env.example .env.local
+cp .env.example .env
 ```
 
 Update the secrets:
@@ -33,21 +35,70 @@ Update the secrets:
 - `NEXTAUTH_SECRET=` generate a long random string (e.g. `openssl rand -base64 32`)
 - `NEXTAUTH_URL=http://localhost:3000` for local development
 
-> ?? Never commit real credentials. `.env.example` contains placeholders only.
+> ⚠️ Never commit real credentials. `.env.example` contains placeholders only.
 
-### 3. Apply migrations
+#### 3. Apply migrations
 
 ```bash
-npm run prisma migrate dev
+npx prisma migrate dev
 ```
 
 This bootstraps the database schema (enums, tables, and balances view).
 
-### 4. Seed demo data (optional but recommended)
+#### 4. Seed demo data (optional but recommended)
 
 ```bash
-npm run prisma db seed
+npx prisma db seed
 ```
+
+#### 5. Run development server
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+### Production Deployment (VPS)
+
+This application is configured for standalone deployment on a Node.js VPS with PM2 process management.
+
+#### Quick Deploy
+
+```bash
+# On your VPS
+git clone https://github.com/phamhuyvn/wallet-management.git
+cd wallet-management
+cp .env.production.example .env.production
+nano .env.production  # Edit with your production values
+chmod +x deploy.sh
+./deploy.sh
+```
+
+#### Management Commands
+
+```bash
+pm2 status              # Check application status
+pm2 logs wallet-app     # View logs
+pm2 restart wallet-app  # Restart application
+pm2 monit              # Monitor resources
+```
+
+#### Documentation
+
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Complete VPS deployment guide
+- **[QUICKFIX.md](./QUICKFIX.md)** - Troubleshooting common deployment issues
+
+#### What's Included
+
+- ✅ **Standalone build** configuration
+- ✅ **PM2 ecosystem** with cluster mode
+- ✅ **Automated deployment** script
+- ✅ **Nginx reverse proxy** setup guide
+- ✅ **SSL/TLS** configuration with Let's Encrypt
+- ✅ **Production environment** templates
 
 Seeds create:
 

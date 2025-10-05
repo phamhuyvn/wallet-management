@@ -28,18 +28,50 @@ npx prisma migrate deploy
 echo "🏗️  Building application..."
 npm run build
 
+# Verify build was successful
+if [ ! -d ".next/standalone" ]; then
+    echo "❌ Error: Standalone build not found. Build may have failed."
+    exit 1
+fi
+
 # Copy necessary files to standalone directory
 echo "📋 Copying files to standalone directory..."
-cp -r public .next/standalone/
-cp -r .next/static .next/standalone/.next/
-cp server.js .next/standalone/
-cp -r prisma .next/standalone/
+
+# Copy public directory
+if [ -d "public" ]; then
+    cp -r public .next/standalone/ 2>/dev/null || true
+fi
+
+# Copy static files
+if [ -d ".next/static" ]; then
+    mkdir -p .next/standalone/.next
+    cp -r .next/static .next/standalone/.next/
+fi
+
+# Copy custom server.js (overwrite the generated one)
+cp server.js .next/standalone/server.js
+
+# Copy prisma directory
+if [ -d "prisma" ]; then
+    cp -r prisma .next/standalone/
+fi
+
+# Copy package.json
 cp package.json .next/standalone/
+
+# Copy node_modules (only production dependencies)
+echo "📦 Installing production dependencies in standalone..."
+cd .next/standalone
+npm ci --production --ignore-scripts
+cd ../..
 
 # Copy environment file
 if [ -f .env.production ]; then
     cp .env.production .next/standalone/.env
+    echo "✅ Copied .env.production to standalone directory"
 fi
+
+echo "✅ Build completed successfully"
 
 # Create logs directory
 mkdir -p logs
